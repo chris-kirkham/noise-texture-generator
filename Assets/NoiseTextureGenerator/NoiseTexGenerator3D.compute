@@ -1,0 +1,16 @@
+﻿#include "bccNoise8.cginc"
+
+#pragma kernel Generate
+
+#define GROUP_SIZE 4
+
+RWTexture3D<float4> Result;
+
+float multiplier;
+float offset;
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, GROUP_SIZE)]
+void Generate(uint3 id : SV_DispatchThreadID)
+{
+    Result[id] = Bcc8NoiseBase((id + offset) * multiplier);
+}
