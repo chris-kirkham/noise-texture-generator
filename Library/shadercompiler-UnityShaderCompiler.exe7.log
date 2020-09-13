@@ -1,9 +1,13 @@
 Base path: 'C:/Program Files/Unity/Hub/Editor/2020.1.0f1/Editor/Data', plugins path 'C:/Program Files/Unity/Hub/Editor/2020.1.0f1/Editor/Data/PlaybackEngines'
 Cmd: initializeCompiler
 Cmd: compileComputeKernel
-  error: 1 plat 4 at OpenSimplex2_8Point.cginc(11): 'exclude_renderers' : unknown pragma ignored
-  error: 1 plat 4 at OpenSimplex2_8Point.cginc(77): 'mul': implicit truncation of vector type
-  error: 1 plat 4 at OpenSimplex2_8Point.cginc(77): implicit truncation of vector type
-  error: 1 plat 4 at OpenSimplex2_8Point.cginc(78): 'mul': implicit truncation of vector type
-  error: 2 plat 4 at OpenSimplex2_8Point.cginc(108): type mismatch
-  api=4 insize=299 outsize=0 ok=0
+  error: 2 plat 4 at NoiseTexGenerator2D.compute(16): 'Bcc8NoiseBase': no matching 2 parameter function
+  error: 1 plat 4 at bccNoise8.cginc(3): 'exclude_renderers' : unknown pragma ignored
+  api=4 insize=405 outsize=0 ok=0
+Cmd: compileComputeKernel
+  error: 1 plat 4 at bccNoise8.cginc(3): 'exclude_renderers' : unknown pragma ignored
+  api=4 insize=434 outsize=5799 ok=1
+Cmd: compileComputeKernel
+  error: 2 plat 4 at NoiseTexGenerator2D.compute(15): undeclared identifier 'texSize'
+  error: 1 plat 4 at bccNoise8.cginc(3): 'exclude_renderers' : unknown pragma ignored
+  api=4 insize=449 outsize=0 ok=0

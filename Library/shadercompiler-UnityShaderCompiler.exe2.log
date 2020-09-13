@@ -2,4 +2,7 @@ Base path: 'C:/Program Files/Unity/Hub/Editor/2020.1.0f1/Editor/Data', plugins p
 Cmd: initializeCompiler
 Cmd: compileComputeKernel
   error: 1 plat 4 at bccNoise8.cginc(3): 'exclude_renderers' : unknown pragma ignored
-  api=4 insize=280 outsize=4850 ok=1
+  api=4 insize=383 outsize=5807 ok=1
+Cmd: compileComputeKernel
+  error: 1 plat 4 at bccNoise8.cginc(3): 'exclude_renderers' : unknown pragma ignored
+  api=4 insize=462 outsize=5807 ok=1

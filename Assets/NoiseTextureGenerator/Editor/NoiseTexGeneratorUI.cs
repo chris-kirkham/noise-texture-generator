@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using System;
 using System.IO;
-using Unity.Jobs;
 using UnityEditor.SceneManagement;
 
 namespace NoiseTexGenerator
@@ -12,12 +10,14 @@ namespace NoiseTexGenerator
     public class NoiseTexGeneratorUI : EditorWindow
     {
         private SaveTextureUtils texUtils = new SaveTextureUtils();
+        private TexGenerator texGenerator;
+        private Texture generatedTex;
 
-        private string[] texDimensions = new string[2] { "2D", "3D" };
-        private int selectedTexDimension = 0; //0 = 2D, 1 = 3D
+        [SerializeField] private string[] texDimensions = new string[2] { "2D", "3D" };
+        [SerializeField] private int selectedTexDimension = 0; //0 = 2D, 1 = 3D
 
-        private Vector2Int texSize2D;
-        private Vector3Int texSize3D;
+        [SerializeField] [Min(2)] private int texWidth, texHeight, texDepth;
+        [SerializeField] private float noiseOffset, noiseMultiplier;
 
         /* GUI LABEL STYLES */
         //these can't be initialised inline because they're ScriptableObjects??
@@ -36,70 +36,81 @@ namespace NoiseTexGenerator
 
         void OnEnable()
         {
+            //initialise tex generator compute shaders and script
+            ComputeShader texGeneratorCompute2D = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/NoiseTextureGenerator/NoiseTexGenerator2D.compute");
+            ComputeShader texGeneratorCompute3D = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/NoiseTextureGenerator/NoiseTexGenerator3D.compute");
+            texGenerator = new TexGenerator(texGeneratorCompute2D, texGeneratorCompute3D);
+
             InitHeaderLabelStyle();
             //InitSubheaderLabelStyle();
         }
 
         void OnGUI()
         {
-            //EditorGUIUtility.labelWidth = 100;
-            //EditorGUIUtility.fieldWidth = 10;
+            EditorGUIUtility.labelWidth = 10;
+            EditorGUIUtility.fieldWidth = 10;
             //minSize = new Vector2(264, 512);
-            
+
             selectedTexDimension = EditorGUILayout.Popup("Texture dimension", selectedTexDimension, texDimensions);
             if(selectedTexDimension == 0) //2D
             {
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.Vector2IntField("Texture size", texSize2D);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    texSize2D.x = FindNearestPowerOf2(texSize2D.x);
-                    texSize2D.y = FindNearestPowerOf2(texSize2D.y);
-                }
+                EditorGUILayout.LabelField("Texture size");
+                EditorGUILayout.BeginHorizontal();
+                EditorGUIUtility.labelWidth = 10;
+                texWidth = FindNearestPowerOf2(EditorGUILayout.IntField("x", texWidth));
+                texHeight = FindNearestPowerOf2(EditorGUILayout.IntField("y", texHeight));
+                EditorGUILayout.EndHorizontal();
 
-                if(GUILayout.Button("Generate noise texture"))
-                {
-                    //create and save new (black i.e. all base texture) blend texture
-                    string newTexPath = EditorUtility.SaveFilePanelInProject("Save new blend map", "BlendTex.png", "png", "");
-                    string newTexName = Path.GetFileName(newTexPath);
-                    string newTexDirectory = Path.GetDirectoryName(newTexPath);
-                    string newTexAsset = texUtils.CreateAndSaveTex2D
-                    (
-                        texSize2D,
-                        newTexDirectory,
-                        newTexName
-                    );
-                }
-                
-            }
-            else //3D
-            {
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.Vector3IntField("Texture size", texSize3D);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    texSize3D.x = FindNearestPowerOf2(texSize3D.x);
-                    texSize3D.y = FindNearestPowerOf2(texSize3D.y);
-                    texSize3D.z = FindNearestPowerOf2(texSize3D.z);
-                }
+                EditorGUIUtility.labelWidth = 100;
+                noiseOffset = EditorGUILayout.FloatField("Offset", noiseOffset);
+                noiseMultiplier = EditorGUILayout.FloatField("Multiplier", noiseMultiplier);
 
                 if (GUILayout.Button("Generate noise texture"))
                 {
-                    //create and save new (black i.e. all base texture) blend texture
+                    generatedTex = texGenerator.GenerateTexture2D(new Vector2Int(texWidth, texHeight), noiseMultiplier, noiseOffset);
+                }
+
+                if (GUILayout.Button("Save generated texture"))
+                {
+                    string newTexPath = EditorUtility.SaveFilePanelInProject("Save new blend map", "Noise.png", "png", "");
+                    string newTexName = Path.GetFileName(newTexPath);
+                    string newTexDirectory = Path.GetDirectoryName(newTexPath);
+
+                    texUtils.SaveTexture((Texture2D)generatedTex, newTexDirectory, newTexName);
+                }
+
+                //draw texture preview
+                Rect texPreviewRect = EditorGUILayout.GetControlRect(false, 128, GUILayout.MinHeight(2), GUILayout.MaxHeight(texWidth), GUILayout.MinWidth(2), GUILayout.MaxWidth(texHeight));
+                EditorGUI.DrawPreviewTexture(texPreviewRect, generatedTex);
+            }
+            else //3D
+            {
+                EditorGUILayout.LabelField("Texture size");
+
+                EditorGUILayout.BeginHorizontal();
+                texWidth = FindNearestPowerOf2(EditorGUILayout.IntField("x", texWidth));
+                texHeight = FindNearestPowerOf2(EditorGUILayout.IntField("y", texHeight));
+                texDepth = FindNearestPowerOf2(EditorGUILayout.IntField("z", texDepth));
+                EditorGUILayout.EndHorizontal();
+
+                if (GUILayout.Button("Generate noise texture"))
+                {
                     string newTexPath = EditorUtility.SaveFilePanelInProject("Save new blend map", "BlendTex.png", "png", "");
                     string newTexName = Path.GetFileName(newTexPath);
                     string newTexDirectory = Path.GetDirectoryName(newTexPath);
                     string newTexAsset = texUtils.CreateAndSaveTex3D
                     (
-                        texSize3D,
+                        texWidth,
+                        texHeight,
+                        texDepth,
                         newTexDirectory,
                         newTexName
                     );
                 }
-                
             }
 
-                
+            
+
         }
 
         private int FindNearestPowerOf2(int n)

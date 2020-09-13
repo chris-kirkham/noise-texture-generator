@@ -4,13 +4,14 @@
 
 #define GROUP_SIZE 8
 
-RWTexture3D<float4> Result;
-
+RWTexture2D<float4> Result;
+float2 texSize;
 float multiplier;
 float offset;
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void Generate(uint3 id : SV_DispatchThreadID)
 {
-    Result[id] = Bcc8NoiseBase((id + offset) * multiplier);
+    float3 coords = float3((float2(id.x / texSize.x, id.y / texSize.y) + offset) * multiplier, 0.8660254037844386);
+    Result[id.xy] = float4(Bcc8NoiseBase((id + offset) * multiplier).rgb, 1);
 }

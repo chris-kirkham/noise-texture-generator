@@ -1,8 +1,6 @@
 Base path: 'C:/Program Files/Unity/Hub/Editor/2020.1.0f1/Editor/Data', plugins path 'C:/Program Files/Unity/Hub/Editor/2020.1.0f1/Editor/Data/PlaybackEngines'
 Cmd: initializeCompiler
 Cmd: compileComputeKernel
-  error: 1 plat 4 at OpenSimplex2_8Point.cginc(11): 'exclude_renderers' : unknown pragma ignored
-  error: 2 plat 4 at OpenSimplex2_8Point.cginc(22): undeclared identifier 'mod'
-  api=4 insize=592 outsize=0 ok=0
-
-Quitting shader compiler process
+  error: 2 plat 4 at NoiseTexGenerator3D.compute(13): duplicate attribute numthreads
+  error: 1 plat 4 at bccNoise8.cginc(3): 'exclude_renderers' : unknown pragma ignored
+  api=4 insize=585 outsize=0 ok=0
