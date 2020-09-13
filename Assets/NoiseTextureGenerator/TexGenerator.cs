@@ -24,7 +24,7 @@ namespace NoiseTexGenerator
             texGenKernel3D = texGenerator3D.FindKernel("Generate");
         }
 
-        public Texture2D GenerateTexture2D(Vector2Int textureSize, float noiseMultiplier, float noiseOffset)
+        public Texture2D GenerateTexture2D(Vector2Int textureSize, float noiseMultiplier, float noiseOffset, float noiseIntensity)
         {
             //Create 2D RenderTexture to be modified by compute shader
             RenderTextureDescriptor desc = new RenderTextureDescriptor(textureSize.x, textureSize.y, RenderTextureFormat.ARGBFloat);
@@ -38,11 +38,11 @@ namespace NoiseTexGenerator
             texGenerator2D.SetFloats("texSize", new float[2] { textureSize.x, textureSize.y });
             texGenerator2D.SetFloat("multiplier", noiseMultiplier);
             texGenerator2D.SetFloat("offset", noiseOffset);
+            texGenerator2D.SetFloat("intensity", noiseIntensity);
 
             //dispatch with correct number of groups for group size
             int numGroupsX = Mathf.Max(1, textureSize.x / GROUP_SIZE_2D);
             int numGroupsY = Mathf.Max(1, textureSize.y / GROUP_SIZE_2D);
-            Debug.Log("numGroupsX = " + numGroupsX);
             texGenerator2D.Dispatch(texGenKernel2D, numGroupsX, numGroupsY, 1);
 
             //send RenderTexture data to a Texture2D and return it

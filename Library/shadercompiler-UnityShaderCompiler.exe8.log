@@ -1,6 +1,7 @@
 Base path: 'C:/Program Files/Unity/Hub/Editor/2020.1.0f1/Editor/Data', plugins path 'C:/Program Files/Unity/Hub/Editor/2020.1.0f1/Editor/Data/PlaybackEngines'
 Cmd: initializeCompiler
 Cmd: compileComputeKernel
-  error: 2 plat 4 at NoiseTexGenerator3D.compute(13): duplicate attribute numthreads
   error: 1 plat 4 at bccNoise8.cginc(3): 'exclude_renderers' : unknown pragma ignored
-  api=4 insize=585 outsize=0 ok=0
+  api=4 insize=515 outsize=5879 ok=1
+
+Quitting shader compiler process

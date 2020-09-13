@@ -16,8 +16,8 @@ namespace NoiseTexGenerator
         [SerializeField] private string[] texDimensions = new string[2] { "2D", "3D" };
         [SerializeField] private int selectedTexDimension = 0; //0 = 2D, 1 = 3D
 
-        [SerializeField] [Min(2)] private int texWidth, texHeight, texDepth;
-        [SerializeField] private float noiseOffset, noiseMultiplier;
+        [SerializeField] [Min(1)] private int texWidth = 256, texHeight = 256, texDepth = 256;
+        [SerializeField] private float noiseOffset = 0f, noiseMultiplier = 0.01f, noiseIntensity = 1f;
 
         /* GUI LABEL STYLES */
         //these can't be initialised inline because they're ScriptableObjects??
@@ -54,6 +54,8 @@ namespace NoiseTexGenerator
             selectedTexDimension = EditorGUILayout.Popup("Texture dimension", selectedTexDimension, texDimensions);
             if(selectedTexDimension == 0) //2D
             {
+                EditorGUI.BeginChangeCheck(); //changing any parameters causes the texture to be regenerated
+
                 EditorGUILayout.LabelField("Texture size");
                 EditorGUILayout.BeginHorizontal();
                 EditorGUIUtility.labelWidth = 10;
@@ -64,11 +66,7 @@ namespace NoiseTexGenerator
                 EditorGUIUtility.labelWidth = 100;
                 noiseOffset = EditorGUILayout.FloatField("Offset", noiseOffset);
                 noiseMultiplier = EditorGUILayout.FloatField("Multiplier", noiseMultiplier);
-
-                if (GUILayout.Button("Generate noise texture"))
-                {
-                    generatedTex = texGenerator.GenerateTexture2D(new Vector2Int(texWidth, texHeight), noiseMultiplier, noiseOffset);
-                }
+                noiseIntensity = EditorGUILayout.Slider("Intensity", noiseIntensity, 0f, 1f);
 
                 if (GUILayout.Button("Save generated texture"))
                 {
@@ -79,8 +77,13 @@ namespace NoiseTexGenerator
                     texUtils.SaveTexture((Texture2D)generatedTex, newTexDirectory, newTexName);
                 }
 
+                if(EditorGUI.EndChangeCheck())
+                {
+                    generatedTex = texGenerator.GenerateTexture2D(new Vector2Int(texWidth, texHeight), noiseMultiplier, noiseOffset, noiseIntensity);
+                }
+
                 //draw texture preview
-                Rect texPreviewRect = EditorGUILayout.GetControlRect(false, 128, GUILayout.MinHeight(2), GUILayout.MaxHeight(texWidth), GUILayout.MinWidth(2), GUILayout.MaxWidth(texHeight));
+                Rect texPreviewRect = EditorGUILayout.GetControlRect(false, 128, GUILayout.MinHeight(32), GUILayout.MaxHeight(texWidth), GUILayout.MinWidth(32), GUILayout.MaxWidth(texHeight));
                 EditorGUI.DrawPreviewTexture(texPreviewRect, generatedTex);
             }
             else //3D
