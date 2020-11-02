@@ -1,26 +1,27 @@
 ﻿#include "bccNoise8.cginc"
 
 #pragma kernel Generate
+#pragma kernel GenerateSlice
 
 #define GROUP_SIZE 4
 
 RWTexture3D<float4> Result;
-RWTexture2DArray<float4> ResultSlices;
-float3 texSize;
+RWTexture2D<float4> ResultSlice;
+uint3 texSize;
+uint slice;
 float multiplier;
 float offset;
+float intensity;
 
-/*
-[numthreads(GROUP_SIZE, GROUP_SIZE, GROUP_SIZE)]
-void Generate(uint3 id : SV_DispatchThreadID)
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void GenerateSlice(uint3 id : SV_DispatchThreadID)
 {
-    Result[id] = Bcc8NoiseBase((id + offset) * multiplier);
+    ResultSlice[id.xy] = Bcc8NoiseBase((uint3(id.xy, slice) + offset) * multiplier) * intensity * 0.5 + 0.5;
 }
-*/
 
 //2D texture slices version
 [numthreads(GROUP_SIZE, GROUP_SIZE, GROUP_SIZE)]
 void Generate(uint3 id : SV_DispatchThreadID)
 {
-    Result[id] = float4(Bcc8NoiseBase((id + offset) * multiplier).rgb, 1);
+    Result[id] = float4(Bcc8NoiseBase((id + offset) * multiplier).rgb, 1) * intensity * 0.5 + 0.5;
 }

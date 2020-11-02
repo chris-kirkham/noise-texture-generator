@@ -13,11 +13,15 @@ namespace NoiseTexGenerator
         private TexGenerator texGenerator;
         private Texture generatedTex;
 
+        private Texture generatedTex3Dpreview; //2D preview of first slice of 3D texture (when generating 3D texture)
+
         [SerializeField] private string[] texDimensions = new string[2] { "2D", "3D" };
+        //private enum NoiseMode { Standard, Value, Barycentric };
+        //[SerializeField] private NoiseMode mode = NoiseMode.Standard;
         [SerializeField] private int selectedTexDimension = 0; //0 = 2D, 1 = 3D
 
         [SerializeField] [Min(1)] private int texWidth = 256, texHeight = 256, texDepth = 256;
-        [SerializeField] private float noiseOffset = 0f, noiseMultiplier = 0.01f, noiseIntensity = 1f;
+        [SerializeField] private float noiseOffset = 0f, noiseMultiplier = 1f, noiseIntensity = 1f;
 
         /* GUI LABEL STYLES */
         //these can't be initialised inline because they're ScriptableObjects??
@@ -43,6 +47,12 @@ namespace NoiseTexGenerator
 
             InitHeaderLabelStyle();
             //InitSubheaderLabelStyle();
+
+
+            //generate initial texture previews
+            generatedTex = texGenerator.GenerateTexture2D(new Vector2Int(texWidth, texHeight), noiseMultiplier, noiseOffset, noiseIntensity);
+            generatedTex3Dpreview = generatedTex; //preview for 3D texture; same default values initially
+
         }
 
         void OnGUI()
@@ -68,18 +78,20 @@ namespace NoiseTexGenerator
                 noiseMultiplier = EditorGUILayout.FloatField("Multiplier", noiseMultiplier);
                 noiseIntensity = EditorGUILayout.Slider("Intensity", noiseIntensity, 0f, 1f);
 
+                //generate new texture if parameter changed
+                if (EditorGUI.EndChangeCheck())
+                {
+                    generatedTex = texGenerator.GenerateTexture2D(new Vector2Int(texWidth, texHeight), noiseMultiplier, noiseOffset, noiseIntensity);
+                }
+
+                //save texture button
                 if (GUILayout.Button("Save generated texture"))
                 {
-                    string newTexPath = EditorUtility.SaveFilePanelInProject("Save new blend map", "Noise.png", "png", "");
+                    string newTexPath = EditorUtility.SaveFilePanelInProject("Save texture", "Noise.png", "png", "");
                     string newTexName = Path.GetFileName(newTexPath);
                     string newTexDirectory = Path.GetDirectoryName(newTexPath);
 
-                    texUtils.SaveTexture((Texture2D)generatedTex, newTexDirectory, newTexName);
-                }
-
-                if(EditorGUI.EndChangeCheck())
-                {
-                    generatedTex = texGenerator.GenerateTexture2D(new Vector2Int(texWidth, texHeight), noiseMultiplier, noiseOffset, noiseIntensity);
+                    texUtils.SaveTexture2D((Texture2D)generatedTex, newTexDirectory, newTexName);
                 }
 
                 //draw texture preview
@@ -88,32 +100,40 @@ namespace NoiseTexGenerator
             }
             else //3D
             {
-                EditorGUILayout.LabelField("Texture size");
+                EditorGUI.BeginChangeCheck(); //changing any parameters causes the texture to be regenerated
 
+                EditorGUILayout.LabelField("Texture size");
                 EditorGUILayout.BeginHorizontal();
                 texWidth = FindNearestPowerOf2(EditorGUILayout.IntField("x", texWidth));
                 texHeight = FindNearestPowerOf2(EditorGUILayout.IntField("y", texHeight));
                 texDepth = FindNearestPowerOf2(EditorGUILayout.IntField("z", texDepth));
                 EditorGUILayout.EndHorizontal();
 
+                EditorGUIUtility.labelWidth = 100;
+                noiseOffset = EditorGUILayout.FloatField("Offset", noiseOffset);
+                noiseMultiplier = EditorGUILayout.FloatField("Multiplier", noiseMultiplier);
+                noiseIntensity = EditorGUILayout.Slider("Intensity", noiseIntensity, 0f, 1f);
+
+                //generate 2D preview of first slice of 3D texture if parameter changed
+                if (EditorGUI.EndChangeCheck())
+                {
+                    generatedTex3Dpreview = texGenerator.GenerateTexture2D(new Vector2Int(texWidth, texHeight), noiseMultiplier, noiseOffset, noiseIntensity);
+                }
+
                 if (GUILayout.Button("Generate noise texture"))
                 {
-                    string newTexPath = EditorUtility.SaveFilePanelInProject("Save new blend map", "BlendTex.png", "png", "");
+                    string newTexPath = EditorUtility.SaveFilePanelInProject("Save new blend map", "Noise3D.asset", "asset", "");
                     string newTexName = Path.GetFileName(newTexPath);
                     string newTexDirectory = Path.GetDirectoryName(newTexPath);
-                    string newTexAsset = texUtils.CreateAndSaveTex3D
-                    (
-                        texWidth,
-                        texHeight,
-                        texDepth,
-                        newTexDirectory,
-                        newTexName
-                    );
+
+                    generatedTex = texGenerator.GenerateTexture3D(new Vector3Int(texWidth, texHeight, texDepth), noiseMultiplier, noiseOffset, noiseIntensity);
+
+                    texUtils.SaveTexture3D((Texture3D)generatedTex, newTexDirectory, newTexName);
                 }
+
+                Rect texPreviewRect = EditorGUILayout.GetControlRect(false, 128, GUILayout.MinHeight(32), GUILayout.MaxHeight(texWidth), GUILayout.MinWidth(32), GUILayout.MaxWidth(texHeight));
+                EditorGUI.DrawPreviewTexture(texPreviewRect, generatedTex3Dpreview);
             }
-
-            
-
         }
 
         private int FindNearestPowerOf2(int n)

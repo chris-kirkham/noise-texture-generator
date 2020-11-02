@@ -7,9 +7,9 @@ namespace NoiseTexGenerator
 {
     public class SaveTextureUtils
     {
-        //Creates a new black texture with appropriate import settings for a paintable blend texture,
-        //and saves it to the given file path. Returns the full asset path of the texture
-        public string SaveTexture(Texture2D tex, string directory, string fileName)
+        
+        //Saves a given 2D texture as a PNG, with the given file path. Returns the full asset path of the texture
+        public string SaveTexture2D(Texture2D tex, string directory, string fileName)
         {
             //Make full asset path from file path and filename
             string assetPath = directory + "/" + fileName;
@@ -22,40 +22,16 @@ namespace NoiseTexGenerator
             return assetPath;
         }
 
-        public string CreateAndSaveTex3D(int width, int height, int depth, string directory, string fileName)
+        public string SaveTexture3D(Texture3D tex, string directory, string fileName)
         {
             //Make full asset path from file path and filename
             string assetPath = directory + "/" + fileName;
 
-            //Create texture
-            Texture2D tex = new Texture2D(width, height);
-            
-            //Texture3D tex3D;
-            //AssetDatabase.CreateAsset(tex, assetPath);
-
-            //initialise with black
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    tex.SetPixel(x, y, Color.HSVToRGB((float)x / width, (float)y / height, 1));
-                }
-            }
-
-            SaveTexToFile(tex, directory, fileName);
-
-            //Need to import texture from assets in order to change its import settings
-            TextureImporter texImporter = (TextureImporter)TextureImporter.GetAtPath(assetPath);
-            texImporter.isReadable = true;
-            texImporter.wrapMode = TextureWrapMode.Clamp;
-            texImporter.textureCompression = TextureImporterCompression.Uncompressed; //Texture2D.SetPixel gives an "unsupported format" error if used on a compressed texture
-            //texImporter.textureFormat = TextureImporterFormat.RGBA32; //setting texture format to this also resolves SetPixel error, but is deprecated
-
-            AssetDatabase.ImportAsset(assetPath);
-            AssetDatabase.Refresh();
+            AssetDatabase.CreateAsset(tex, assetPath);
 
             return assetPath;
         }
+
 
         private void SaveTexToFile(Texture2D tex, string directory, string fileName)
         {
